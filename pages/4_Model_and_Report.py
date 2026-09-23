@@ -87,7 +87,7 @@ show = show.rename(columns={"feature": "Feature", "coef": "Coef",
 show["Odds ratio"] = show["Odds ratio"].map(lambda v: f"{v:.2f}x")
 show["Coef"] = show["Coef"].map(lambda v: f"{v:+.3f}")
 st.dataframe(show[["Feature", "Coef", "Odds ratio", "plain English"]],
-             use_container_width=True, hide_index=True)
+             width="stretch", hide_index=True)
 
 section("Condensed report")
 with st.expander("Observations"):

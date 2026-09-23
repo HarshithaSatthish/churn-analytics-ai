@@ -53,7 +53,7 @@ seg = seg[seg["size"] >= 50].sort_values("mean", ascending=False).head(5)
 seg["churn rate"] = (seg["mean"] * 100).round(1).astype(str) + "%"
 seg = seg.rename(columns={"Contract": "Contract", "InternetService": "Internet",
                            "size": "Customers"})[["Contract", "Internet", "churn rate", "Customers"]]
-st.dataframe(seg, use_container_width=True, hide_index=True)
+st.dataframe(seg, width="stretch", hide_index=True)
 st.caption("Segments with at least 50 customers, ranked by churn rate.")
 
 with st.expander(f"Data dictionary ({len(DATA_DICTIONARY)} columns)"):

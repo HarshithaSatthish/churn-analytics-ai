@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parent
 
 # ---------------------------------------------------------------- design system
 TEAL = "#0E7C7B"

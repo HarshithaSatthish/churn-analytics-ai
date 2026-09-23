@@ -1,0 +1,54 @@
+feature,coef,odds_ratio
+num__MonthlyCharges,-0.8874,0.4117
+cat__tenure_band_0-6,0.6229,1.8643
+num__is_fiber,0.6106,1.8415
+cat__Contract_Two year,-0.5868,0.5561
+num__tenure,-0.4445,0.6412
+num__is_month_to_month,0.4439,1.5588
+cat__tenure_band_25+,-0.3892,0.6776
+num__num_services,0.3544,1.4253
+cat__Contract_One year,0.3073,1.3597
+cat__tenure_band_13-24,-0.2874,0.7502
+cat__StreamingMovies_Yes,0.2593,1.296
+cat__StreamingTV_Yes,0.2457,1.2786
+cat__InternetService_Fiber optic,0.2455,1.2783
+cat__PaperlessBilling_No,-0.2382,0.788
+cat__OnlineSecurity_No,0.2321,1.2612
+cat__DeviceProtection_No internet service,-0.2111,0.8097
+cat__TechSupport_No internet service,-0.2111,0.8097
+cat__StreamingMovies_No internet service,-0.2111,0.8097
+cat__StreamingTV_No internet service,-0.2111,0.8097
+cat__OnlineSecurity_No internet service,-0.2111,0.8097
+cat__InternetService_No,-0.2111,0.8097
+cat__OnlineBackup_No internet service,-0.2111,0.8097
+cat__TechSupport_No,0.1997,1.221
+cat__StreamingMovies_No,-0.1789,0.8362
+cat__Dependents_Yes,-0.1711,0.8427
+cat__MultipleLines_No,-0.1658,0.8472
+cat__StreamingTV_No,-0.1654,0.8476
+cat__InternetService_DSL,-0.1651,0.8478
+cat__OnlineSecurity_Yes,-0.1517,0.8593
+cat__Contract_Month-to-month,0.1489,1.1605
+num__is_electronic_check,0.1413,1.1517
+cat__OnlineBackup_No,0.1259,1.1342
+cat__MultipleLines_Yes,0.121,1.1286
+cat__TechSupport_Yes,-0.1193,0.8875
+cat__PaperlessBilling_Yes,0.1076,1.1136
+cat__PhoneService_No,-0.0859,0.9177
+cat__MultipleLines_No phone service,-0.0859,0.9177
+cat__Partner_No,-0.0841,0.9193
+cat__gender_Female,-0.0819,0.9214
+cat__tenure_band_7-12,-0.077,0.9259
+num__SeniorCitizen,0.0585,1.0603
+cat__PaymentMethod_Bank transfer (automatic),-0.0564,0.9452
+cat__DeviceProtection_No,0.0533,1.0547
+cat__PaymentMethod_Mailed check,-0.05,0.9512
+cat__gender_Male,-0.0488,0.9524
+cat__PaymentMethod_Credit card (automatic),-0.0471,0.954
+cat__Partner_Yes,-0.0466,0.9545
+cat__OnlineBackup_Yes,-0.0455,0.9555
+cat__PhoneService_Yes,-0.0448,0.9562
+num__TotalCharges,0.0408,1.0417
+cat__Dependents_No,0.0404,1.0412
+cat__DeviceProtection_Yes,0.0271,1.0275
+cat__PaymentMethod_Electronic check,0.0228,1.0231

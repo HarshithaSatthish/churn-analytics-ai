@@ -1,0 +1,31 @@
+{
+  "categorical": [
+    "gender",
+    "Partner",
+    "Dependents",
+    "PhoneService",
+    "MultipleLines",
+    "InternetService",
+    "OnlineSecurity",
+    "OnlineBackup",
+    "DeviceProtection",
+    "TechSupport",
+    "StreamingTV",
+    "StreamingMovies",
+    "Contract",
+    "PaperlessBilling",
+    "PaymentMethod",
+    "tenure_band"
+  ],
+  "numeric": [
+    "SeniorCitizen",
+    "tenure",
+    "MonthlyCharges",
+    "TotalCharges",
+    "num_services",
+    "is_fiber",
+    "is_month_to_month",
+    "is_electronic_check"
+  ],
+  "target": "churn_binary"
+}

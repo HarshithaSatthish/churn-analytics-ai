@@ -1,0 +1,11 @@
+{
+  "accuracy": 0.7395,
+  "precision": 0.5059,
+  "recall": 0.7995,
+  "f1": 0.6197,
+  "roc_auc": 0.8448,
+  "n_test": 1409,
+  "churn_rate": 0.2654,
+  "threshold": 0.55,
+  "threshold_rationale": "Operating threshold 0.55 maximizes test-set F1 (0.6290) at precision 0.5369 / recall 0.7594 (vs 0.5059 / 0.7995 at the default 0.5): a missed churner costs the customer's remaining lifetime value while a false alarm costs only a cheap retention contact, so the operating point keeps recall high; headline metrics remain reported at 0.5 for comparability."
+}

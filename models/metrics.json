@@ -1,11 +1,55 @@
 {
-  "accuracy": 0.7395,
-  "precision": 0.5059,
-  "recall": 0.7995,
-  "f1": 0.6197,
-  "roc_auc": 0.8448,
-  "n_test": 1409,
-  "churn_rate": 0.2654,
-  "threshold": 0.55,
-  "threshold_rationale": "Operating threshold 0.55 maximizes test-set F1 (0.6290) at precision 0.5369 / recall 0.7594 (vs 0.5059 / 0.7995 at the default 0.5): a missed churner costs the customer's remaining lifetime value while a false alarm costs only a cheap retention contact, so the operating point keeps recall high; headline metrics remain reported at 0.5 for comparability."
+  "model": "LogisticRegression",
+  "random_state": 42,
+  "split": {
+    "strategy": "stratified 60/20/20 train/validation/test",
+    "train_rows": 4225,
+    "validation_rows": 1409,
+    "test_rows": 1409,
+    "test_churn_rate": 0.2654
+  },
+  "threshold_selection": {
+    "selected_on": "validation only",
+    "objective": "maximize precision subject to recall >= 70%",
+    "value": 0.36,
+    "validation_metrics": {
+      "threshold": 0.36,
+      "accuracy": 0.7864,
+      "precision": 0.5809,
+      "recall": 0.7005,
+      "f1": 0.6352,
+      "tn": 846,
+      "fp": 189,
+      "fn": 112,
+      "tp": 262
+    }
+  },
+  "test_default": {
+    "threshold": 0.5,
+    "accuracy": 0.8013,
+    "precision": 0.661,
+    "recall": 0.516,
+    "f1": 0.5796,
+    "tn": 936,
+    "fp": 99,
+    "fn": 181,
+    "tp": 193
+  },
+  "test_operating": {
+    "threshold": 0.36,
+    "accuracy": 0.7771,
+    "precision": 0.5649,
+    "recall": 0.6979,
+    "f1": 0.6244,
+    "tn": 834,
+    "fp": 201,
+    "fn": 113,
+    "tp": 261
+  },
+  "roc_auc": 0.8451,
+  "average_precision": 0.6487,
+  "brier_score": 0.1366,
+  "majority_baseline_accuracy": 0.7346,
+  "feature_count_raw": 20,
+  "notes": "Default 0.50 metrics describe standard classification. The operating cutoff was selected on validation data before the final untouched test evaluation."
 }

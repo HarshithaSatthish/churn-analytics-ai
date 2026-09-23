@@ -1,0 +1,28 @@
+FINAL SUBMISSION VALIDATION
+Date: 2026-09-24
+
+Automated checks completed:
+- Python source compilation: PASS
+- Raw -> clean pipeline: PASS (7,043 rows; 11 blank TotalCharges fixed; 0 rows dropped)
+- Reproducible EDA generation: PASS
+- Leakage-safe model training: PASS
+- Serialized model inference: PASS
+- Fresh-clone wiring validation: PASS
+- Contract/unit tests: PASS (8/8)
+- Stale metric scan: PASS
+- Secret / absolute-local-path scan: PASS
+- Required deployment files: PASS
+
+Final untouched-test model metrics:
+- ROC-AUC: 0.8451
+- Average precision: 0.6487
+- Brier score: 0.1366
+- Default 0.50: accuracy 0.8013, precision 0.6610, recall 0.5160, F1 0.5796
+- Validation-selected 0.36: accuracy 0.7771, precision 0.5649, recall 0.6979, F1 0.6244
+
+Manual declaration check still required before submission:
+- Confirm the author name shown in README.md and reports/Final_Report.md.
+- Confirm the AI-assistance disclosure matches the submitter's actual usage and academic policy.
+
+Environment note:
+- Streamlit was not installed in the audit sandbox and package downloads were unavailable, so a live browser launch was not possible here. Streamlit source compiled successfully, non-UI feature/model wiring is tested, dependencies are pinned, and deployment layout follows Streamlit Community Cloud requirements.

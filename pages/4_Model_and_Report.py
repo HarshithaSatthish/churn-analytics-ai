@@ -1,118 +1,128 @@
-"""Page 4 — model metrics, drivers, and condensed report."""
+"""Model evaluation, explainability, methodology, and report page."""
+from pathlib import Path
+
+import pandas as pd
 import streamlit as st
+
 from _shared import (
-    apply_theme, feature_label, load_feature_importance, load_metrics, load_model,
-    odds_ratio_table, page_footer, plain_interpretation, section,
-    threshold_point_metrics, ROOT,
+    ROOT,
+    configure_page,
+    load_feature_effects,
+    load_metrics,
+    page_footer,
+    readable_feature,
+    section,
+    sidebar_project_info,
 )
 
-apply_theme()
+configure_page("Model & Report")
+sidebar_project_info()
 st.title("Model & report")
-m = load_metrics()
+st.caption("Evaluation is separated from model/threshold selection so the reported test result stays honest.")
 
-section("Test-set performance")
-st.caption(f"n = {m['n_test']:,} customers the model had never seen.")
+metrics = load_metrics()
+default = metrics["test_default"]
+operating = metrics["test_operating"]
+threshold = float(metrics["threshold_selection"]["value"])
+
+section("Untouched test performance")
+st.caption(
+    f"Test rows: {metrics['split']['test_rows']:,} · churn rate: {metrics['split']['test_churn_rate']:.1%} · "
+    f"majority-class accuracy baseline: {metrics['majority_baseline_accuracy']:.1%}"
+)
+
 c1, c2, c3, c4, c5 = st.columns(5)
-c1.metric("Accuracy", f"{m['accuracy']:.3f}")
-c2.metric("Precision", f"{m['precision']:.3f}")
-c3.metric("Recall", f"{m['recall']:.3f}")
-c4.metric("F1", f"{m['f1']:.3f}")
-c5.metric("ROC-AUC", f"{m['roc_auc']:.3f}")
+c1.metric("ROC-AUC", f"{metrics['roc_auc']:.3f}")
+c2.metric("Accuracy @ 0.50", f"{default['accuracy']:.1%}")
+c3.metric(f"Recall @ {threshold:.2f}", f"{operating['recall']:.1%}")
+c4.metric(f"Precision @ {threshold:.2f}", f"{operating['precision']:.1%}")
+c5.metric(f"F1 @ {threshold:.2f}", f"{operating['f1']:.3f}")
+
 st.markdown(
-    '<div class="callout">Recall is 0.80: the model catches 4 out of 5 churners. '
-    "Precision is 0.51: about half of the flagged customers truly leave. For a "
-    "retention team, catching churners matters more than being right every time.</div>",
+    '<div class="callout"><b>Interpretation:</b> the model ranks churn risk well (ROC-AUC 0.845). '
+    f'At the validation-selected {threshold:.0%} operating cutoff, it captures '
+    f'{operating["tp"]} of {operating["tp"] + operating["fn"]} churners in the untouched test set, '
+    f'with {operating["fp"]} false positives.</div>',
     unsafe_allow_html=True,
 )
-st.caption("Logistic regression, 80/20 stratified split, class_weight='balanced', "
-           "random_state=42. Headline metrics use the standard 0.5 cutoff.")
 
-threshold = m.get("threshold", 0.55)  # Team 6 operating point; file wins if present
-thr_path = ROOT / "figures" / "threshold_curve.png"
-if thr_path.exists() or "threshold_rationale" in m:
-    section("Operating threshold")
-    if thr_path.exists():
-        st.image(str(thr_path))
-    tp = threshold_point_metrics(threshold)
-    st.markdown(
-        f"**Operating point: {tp['threshold']:.2f}** — precision {tp['precision']:.3f}, "
-        f"recall {tp['recall']:.3f}, F1 {tp['f1']:.3f} on the test set."
-    )
-    if "threshold_rationale" in m:
-        st.markdown(m["threshold_rationale"])
-    else:
-        st.markdown(
-            "Why 0.55: it maximizes F1 on the test set. The cost logic: a missed "
-            "churner costs that customer's lifetime value, while a false alarm "
-            "costs only a cheap retention contact — so the threshold leans toward "
-            "catching churners."
-        )
-
+roc_path = ROOT / "figures" / "roc_curve.png"
 cm_path = ROOT / "figures" / "confusion_matrix.png"
-if cm_path.exists():
-    section("Confusion matrix")
-    st.image(str(cm_path))
+col1, col2 = st.columns(2)
+with col1:
+    if roc_path.exists():
+        st.image(str(roc_path), caption="Untouched test ROC curve")
+with col2:
+    if cm_path.exists():
+        st.image(str(cm_path), caption=f"Untouched test confusion matrix @ {threshold:.2f}")
 
-section("What drives churn (odds ratios)")
+section("How the operating cutoff was chosen")
 st.markdown(
-    "Each row: how much one feature moves the odds of churning, holding the "
-    "rest fixed. Above 1 pushes toward churn; below 1 protects. The five "
-    "strongest drivers: month-to-month contract, short tenure, fiber-optic "
-    "service, number of services, one-year contract."
+    f"The threshold was selected on the **validation split only**. The rule was: "
+    f"maximize precision while maintaining at least 70% recall. That produced a cutoff of **{threshold:.2f}**. "
+    "Only after freezing that value was the final pipeline evaluated on the test split."
 )
+threshold_path = ROOT / "figures" / "threshold_curve.png"
+if threshold_path.exists():
+    st.image(str(threshold_path), caption="Precision / recall / F1 on validation data only")
+
+with st.expander("Default 0.50 vs operating cutoff"):
+    compare = pd.DataFrame(
+        [
+            {"Cutoff": "0.50 (default)", **{k: default[k] for k in ["accuracy", "precision", "recall", "f1", "tp", "fp", "fn", "tn"]}},
+            {"Cutoff": f"{threshold:.2f} (operating)", **{k: operating[k] for k in ["accuracy", "precision", "recall", "f1", "tp", "fp", "fn", "tn"]}},
+        ]
+    )
+    st.dataframe(compare, use_container_width=True, hide_index=True)
+
+section("Interpretable model effects")
 st.markdown(
-    '<div class="callout"><b>Surprising but true:</b> monthly charges has the '
-    "largest coefficient (−0.89) and it is <i>protective</i> — once contract, "
-    "tenure, and fiber are accounted for, a bigger bill on its own pushes "
-    "<i>against</i> churn. This does not contradict the raw averages ($74.44 "
-    "churned vs $61.27 retained): fiber and month-to-month customers both pay "
-    "more <i>and</i> churn more, so the bill picks up their signal in a simple "
-    "average. The model separates those effects.</div>",
-    unsafe_allow_html=True,
+    "The pipeline uses logistic regression, one-hot encoding with a dropped reference category, and standardized numeric features. "
+    "For categorical rows, the odds ratio compares with the listed reference. For numeric rows, it describes a +1 standard-deviation change."
 )
-fi = load_feature_importance()
-if fi is not None:
-    table = fi.copy()
-    # tolerate raw get_feature_names_out() prefixes (num__/cat__)
-    table["feature"] = (table["feature"].str.replace(r"^(num|cat)__", "", regex=True)
-                        .map(feature_label))
-    table = table.rename(columns={"feature": "feature", "coef": "coef",
-                                  "odds_ratio": "odds_ratio"})
-else:
-    table = odds_ratio_table(load_model())
-show = table.head(12).copy()
-show["plain English"] = show.apply(plain_interpretation, axis=1)
-show = show.rename(columns={"feature": "Feature", "coef": "Coef",
-                             "odds_ratio": "Odds ratio"})
-show["Odds ratio"] = show["Odds ratio"].map(lambda v: f"{v:.2f}x")
-show["Coef"] = show["Coef"].map(lambda v: f"{v:+.3f}")
-st.dataframe(show[["Feature", "Coef", "Odds ratio", "plain English"]],
-             width="stretch", hide_index=True)
+effects = load_feature_effects().copy()
+effects["Feature"] = effects["feature"].map(readable_feature)
+effects["Direction"] = effects["coefficient"].map(lambda value: "Higher churn odds" if value > 0 else "Lower churn odds")
+effects["Coefficient"] = effects["coefficient"].map(lambda value: f"{value:+.3f}")
+effects["Odds ratio"] = effects["odds_ratio"].map(lambda value: f"{value:.2f}x")
+effects = effects.rename(columns={"comparison": "Comparison"})
+st.dataframe(
+    effects[["Feature", "Direction", "Coefficient", "Odds ratio", "Comparison"]].head(15),
+    use_container_width=True,
+    hide_index=True,
+)
+st.caption("Coefficients are conditional model associations, not causal effects.")
 
-section("Condensed report")
-with st.expander("Observations"):
-    st.markdown(
-        "- Month-to-month contracts churn at 42.7%, vs 11.3% for one-year and 2.8% for two-year.\n"
-        "- Customers in their first 6 months churn at 52.9%; after 25+ months it is 14.0%.\n"
-        "- Churned customers paid $74.44/month on average, vs $61.27 for retained.\n"
-        "- Fiber-optic customers churn at 41.9%; electronic-check payers at 45.3%.")
-with st.expander("Insights"):
-    st.markdown(
-        "- Contract type is the strongest signal; short tenure compounds it.\n"
-        "- Churn is a new-customer, high-bill, low-commitment problem.\n"
-        "- The model separates risk well enough (ROC-AUC 0.845) to prioritize outreach.")
-with st.expander("Hypotheses"):
-    st.markdown(
-        "- H1: A one-year contract discount for month-to-month fiber customers in "
-        "months 0-6 cuts their churn by at least 10 points.\n"
-        "- H2: Proactive tech-support outreach in the first 90 days lifts 12-month retention.\n"
-        "- H3: Capping first-year bill shock (no surprise increases) reduces high-bill churn.")
-with st.expander("Recommendations"):
-    st.markdown(
-        "- R1: Aim retention offers at high-risk (score over 60%) month-to-month customers.\n"
-        "- R2: Onboard the 0-6 month cohort with 30/60/90-day check-ins.\n"
-        "- R3: Give fiber-optic churn (41.9%) an owner — pricing or support, or both.\n"
-        "- R4: Nudge electronic-check payers toward autopay.")
+section("Methodology")
+st.markdown(
+    "1. Clean the 7,043-row IBM Telco dataset and keep all rows.\n"
+    "2. Hold out 20% as an untouched stratified test set.\n"
+    "3. Split the remaining data into 60% train and 20% validation.\n"
+    "4. Fit a preprocessing + logistic-regression pipeline on train.\n"
+    "5. Select the retention cutoff on validation only.\n"
+    "6. Refit the same pipeline specification on train + validation.\n"
+    "7. Evaluate once on test and serialize that exact final pipeline."
+)
 
-st.caption("Full report: reports/Final_Report.md in the project folder.")
+section("Limitations")
+st.markdown(
+    "- Static public dataset with no time dimension; this is not temporal validation.\n"
+    "- Customer risk can drift as prices, products, and behavior change.\n"
+    "- The dashboard demonstrates prioritization; it does not prove retention interventions cause lower churn.\n"
+    "- Fairness across protected or operationally sensitive groups requires a dedicated review before real-world use.\n"
+    "- ROI values in the predictor are scenarios, not measured business outcomes."
+)
+
+section("Project report")
+report_path = ROOT / "reports" / "Final_Report.md"
+report_text = report_path.read_text(encoding="utf-8")
+st.download_button(
+    "Download Final_Report.md",
+    data=report_text.encode("utf-8"),
+    file_name="Final_Report.md",
+    mime="text/markdown",
+)
+with st.expander("Read condensed report in the app"):
+    st.markdown(report_text)
+
 page_footer()

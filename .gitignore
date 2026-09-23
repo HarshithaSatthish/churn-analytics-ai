@@ -1,5 +1,25 @@
+# Python
 .venv/
+venv/
 __pycache__/
-.streamlit/
-*.mp4
+*.py[cod]
+.pytest_cache/
 .ipynb_checkpoints/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Streamlit secrets (keep config.toml tracked)
+.streamlit/secrets.toml
+
+# Local logs / recordings
+*.log
+*.mp4
+
+# Build artifacts
+build/
+dist/
+*.egg-info/

@@ -21,11 +21,31 @@
     "SeniorCitizen",
     "tenure",
     "MonthlyCharges",
-    "TotalCharges",
-    "num_services",
-    "is_fiber",
-    "is_month_to_month",
-    "is_electronic_check"
+    "num_services"
   ],
-  "target": "churn_binary"
+  "model_features": [
+    "gender",
+    "Partner",
+    "Dependents",
+    "PhoneService",
+    "MultipleLines",
+    "InternetService",
+    "OnlineSecurity",
+    "OnlineBackup",
+    "DeviceProtection",
+    "TechSupport",
+    "StreamingTV",
+    "StreamingMovies",
+    "Contract",
+    "PaperlessBilling",
+    "PaymentMethod",
+    "tenure_band",
+    "SeniorCitizen",
+    "tenure",
+    "MonthlyCharges",
+    "num_services"
+  ],
+  "target": "churn_binary",
+  "operating_threshold": 0.36,
+  "one_hot_drop": "first"
 }

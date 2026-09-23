@@ -1,54 +1,34 @@
-feature,coef,odds_ratio
-num__MonthlyCharges,-0.8874,0.4117
-cat__tenure_band_0-6,0.6229,1.8643
-num__is_fiber,0.6106,1.8415
-cat__Contract_Two year,-0.5868,0.5561
-num__tenure,-0.4445,0.6412
-num__is_month_to_month,0.4439,1.5588
-cat__tenure_band_25+,-0.3892,0.6776
-num__num_services,0.3544,1.4253
-cat__Contract_One year,0.3073,1.3597
-cat__tenure_band_13-24,-0.2874,0.7502
-cat__StreamingMovies_Yes,0.2593,1.296
-cat__StreamingTV_Yes,0.2457,1.2786
-cat__InternetService_Fiber optic,0.2455,1.2783
-cat__PaperlessBilling_No,-0.2382,0.788
-cat__OnlineSecurity_No,0.2321,1.2612
-cat__DeviceProtection_No internet service,-0.2111,0.8097
-cat__TechSupport_No internet service,-0.2111,0.8097
-cat__StreamingMovies_No internet service,-0.2111,0.8097
-cat__StreamingTV_No internet service,-0.2111,0.8097
-cat__OnlineSecurity_No internet service,-0.2111,0.8097
-cat__InternetService_No,-0.2111,0.8097
-cat__OnlineBackup_No internet service,-0.2111,0.8097
-cat__TechSupport_No,0.1997,1.221
-cat__StreamingMovies_No,-0.1789,0.8362
-cat__Dependents_Yes,-0.1711,0.8427
-cat__MultipleLines_No,-0.1658,0.8472
-cat__StreamingTV_No,-0.1654,0.8476
-cat__InternetService_DSL,-0.1651,0.8478
-cat__OnlineSecurity_Yes,-0.1517,0.8593
-cat__Contract_Month-to-month,0.1489,1.1605
-num__is_electronic_check,0.1413,1.1517
-cat__OnlineBackup_No,0.1259,1.1342
-cat__MultipleLines_Yes,0.121,1.1286
-cat__TechSupport_Yes,-0.1193,0.8875
-cat__PaperlessBilling_Yes,0.1076,1.1136
-cat__PhoneService_No,-0.0859,0.9177
-cat__MultipleLines_No phone service,-0.0859,0.9177
-cat__Partner_No,-0.0841,0.9193
-cat__gender_Female,-0.0819,0.9214
-cat__tenure_band_7-12,-0.077,0.9259
-num__SeniorCitizen,0.0585,1.0603
-cat__PaymentMethod_Bank transfer (automatic),-0.0564,0.9452
-cat__DeviceProtection_No,0.0533,1.0547
-cat__PaymentMethod_Mailed check,-0.05,0.9512
-cat__gender_Male,-0.0488,0.9524
-cat__PaymentMethod_Credit card (automatic),-0.0471,0.954
-cat__Partner_Yes,-0.0466,0.9545
-cat__OnlineBackup_Yes,-0.0455,0.9555
-cat__PhoneService_Yes,-0.0448,0.9562
-num__TotalCharges,0.0408,1.0417
-cat__Dependents_No,0.0404,1.0412
-cat__DeviceProtection_Yes,0.0271,1.0275
-cat__PaymentMethod_Electronic check,0.0228,1.0231
+feature,source_feature,coefficient,odds_ratio,effect_type,comparison
+Contract=Two year,Contract,-1.501809,0.222727,categorical,vs Month-to-month
+InternetService=Fiber optic,InternetService,1.26202,3.53255,categorical,vs DSL
+tenure_band=25+,tenure_band,-0.945856,0.388347,categorical,vs 0-6
+tenure_band=13-24,tenure_band,-0.870796,0.418618,categorical,vs 0-6
+Contract=One year,Contract,-0.699712,0.496728,categorical,vs Month-to-month
+tenure_band=7-12,tenure_band,-0.654574,0.519663,categorical,vs 0-6
+tenure,tenure,-0.466361,0.627281,numeric_standardized,per +1 SD (24.57 original units)
+OnlineSecurity=Yes,OnlineSecurity,-0.44583,0.640293,categorical,vs No
+MonthlyCharges,MonthlyCharges,-0.407194,0.665515,numeric_standardized,per +1 SD (30.14 original units)
+TechSupport=Yes,TechSupport,-0.399344,0.67076,categorical,vs No
+PaperlessBilling=Yes,PaperlessBilling,0.385131,1.469807,categorical,vs No
+PhoneService=Yes,PhoneService,-0.375642,0.686849,categorical,vs No
+PaymentMethod=Electronic check,PaymentMethod,0.354904,1.426043,categorical,vs Bank transfer (automatic)
+num_services,num_services,0.329539,1.390328,numeric_standardized,per +1 SD (2.32 original units)
+StreamingMovies=Yes,StreamingMovies,0.296519,1.345168,categorical,vs No
+MultipleLines=Yes,MultipleLines,0.290849,1.337562,categorical,vs No
+StreamingTV=Yes,StreamingTV,0.283984,1.328412,categorical,vs No
+OnlineBackup=Yes,OnlineBackup,-0.230016,0.794521,categorical,vs No
+Dependents=Yes,Dependents,-0.209636,0.81088,categorical,vs No
+StreamingMovies=No internet service,StreamingMovies,-0.149265,0.861341,categorical,vs No
+InternetService=No,InternetService,-0.149265,0.861341,categorical,vs DSL
+OnlineBackup=No internet service,OnlineBackup,-0.149265,0.861341,categorical,vs No
+OnlineSecurity=No internet service,OnlineSecurity,-0.149265,0.861341,categorical,vs No
+TechSupport=No internet service,TechSupport,-0.149265,0.861341,categorical,vs No
+DeviceProtection=No internet service,DeviceProtection,-0.149265,0.861341,categorical,vs No
+StreamingTV=No internet service,StreamingTV,-0.149265,0.861341,categorical,vs No
+DeviceProtection=Yes,DeviceProtection,-0.060947,0.940873,categorical,vs No
+SeniorCitizen,SeniorCitizen,0.057833,1.059538,numeric_standardized,per +1 SD (0.37 original units)
+Partner=Yes,Partner,0.040621,1.041457,categorical,vs No
+PaymentMethod=Mailed check,PaymentMethod,0.037922,1.03865,categorical,vs Bank transfer (automatic)
+PaymentMethod=Credit card (automatic),PaymentMethod,-0.028802,0.971609,categorical,vs Bank transfer (automatic)
+gender=Male,gender,0.022831,1.023093,categorical,vs Female
+MultipleLines=No phone service,MultipleLines,-0.020859,0.979357,categorical,vs No

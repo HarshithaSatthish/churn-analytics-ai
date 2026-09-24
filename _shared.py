@@ -11,6 +11,7 @@ import pandas as pd
 import streamlit as st
 
 from src.features import profile_to_model_row
+from src.utils import RISK_LOW, RISK_VERY_HIGH
 
 ROOT = Path(__file__).resolve().parent
 
@@ -246,28 +247,47 @@ def contribution_bars(items, color: str) -> None:
         )
 
 
+def _band_bounds() -> tuple[float, float]:
+    """(low_max, very_high_min) from metrics.json, falling back to training constants."""
+    try:
+        bands = json.loads(
+            (ROOT / "models" / "metrics.json").read_text(encoding="utf-8")
+        ).get("risk_bands", {})
+        return (
+            float(bands.get("low_max", RISK_LOW)),
+            float(bands.get("very_high_min", RISK_VERY_HIGH)),
+        )
+    except Exception:
+        return RISK_LOW, RISK_VERY_HIGH
+
+
 def risk_band(score: float, cutoff: float) -> tuple[str, str, str]:
-    if score < 0.20:
+    low_max, very_high_min = _band_bounds()
+    if score < low_max:
         return "LOW", "band-low", "Routine service; no retention action indicated."
     if score < cutoff:
         return "WATCH", "band-medium", "Monitor and consider a low-cost proactive check-in."
-    if score < 0.60:
+    if score < very_high_min:
         return "HIGH", "band-high", "Meets the model cutoff; prioritize for retention outreach."
     return "VERY HIGH", "band-very-high", "Top-priority retention case; review contract, support, and offer options."
 
 
 def gauge(score: float, cutoff: float) -> None:
+    low_max, very_high_min = _band_bounds()
+    low_pct, vhigh_pct = low_max * 100, very_high_min * 100
     pct = max(0.0, min(100.0, score * 100))
-    cutoff_pct = max(20.1, min(59.9, cutoff * 100))
+    cutoff_pct = max(low_pct + 0.1, min(vhigh_pct - 0.1, cutoff * 100))
     background = (
-        f"linear-gradient(90deg,{TEAL} 0 20%,{AMBER} 20% {cutoff_pct:.1f}%,"
-        f"{RED} {cutoff_pct:.1f}% 60%,#7F1D1D 60% 100%)"
+        f"linear-gradient(90deg,{TEAL} 0 {low_pct:.1f}%,{AMBER} {low_pct:.1f}% {cutoff_pct:.1f}%,"
+        f"{RED} {cutoff_pct:.1f}% {vhigh_pct:.1f}%,#7F1D1D {vhigh_pct:.1f}% 100%)"
     )
     st.markdown(
         f'<div class="gauge" style="background:{background};">'
         f'<div class="gauge-marker" style="left:{pct:.1f}%;"></div></div>'
-        '<div class="gauge-labels"><span>0%</span><span>20% watch</span>'
-        f'<span>{cutoff_pct:.0f}% cutoff</span><span>60% very high</span><span>100%</span></div>',
+        '<div class="gauge-labels"><span>0%</span>'
+        f'<span>{low_pct:.0f}% watch</span>'
+        f'<span>{cutoff_pct:.0f}% cutoff</span>'
+        f'<span>{vhigh_pct:.0f}% very high</span><span>100%</span></div>',
         unsafe_allow_html=True,
     )
 

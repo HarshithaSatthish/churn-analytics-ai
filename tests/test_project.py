@@ -76,6 +76,39 @@ class ProjectContractTests(unittest.TestCase):
             self.assertIn(token, readme)
             self.assertIn(token, report)
 
+    def test_metrics_has_flat_contract_keys(self):
+        metrics = json.loads((ROOT / "models" / "metrics.json").read_text())
+        for key in ["accuracy", "precision", "recall", "f1", "roc_auc", "n_test", "churn_rate"]:
+            self.assertIn(key, metrics)
+        self.assertEqual(metrics["n_test"], 1409)
+        self.assertAlmostEqual(metrics["accuracy"], metrics["test_default"]["accuracy"])
+        self.assertAlmostEqual(metrics["roc_auc"], 0.8451, places=4)
+
+    def test_risk_bands_are_configured(self):
+        metrics = json.loads((ROOT / "models" / "metrics.json").read_text())
+        bands = metrics["risk_bands"]
+        self.assertAlmostEqual(bands["low_max"], 0.20)
+        self.assertAlmostEqual(bands["very_high_min"], 0.60)
+
+    def test_batch_rows_from_raw_schema(self):
+        from src.features import raw_frame_to_model_rows
+
+        raw = pd.read_csv(ROOT / "data" / "raw" / "telco_churn.csv", nrows=5)
+        rows, errors = raw_frame_to_model_rows(raw)
+        self.assertEqual(errors, [])
+        self.assertEqual(len(rows), 5)
+        self.assertEqual(list(rows.columns), MODEL_FEATURES)
+
+    def test_batch_skips_invalid_rows(self):
+        from src.features import raw_frame_to_model_rows
+
+        raw = pd.read_csv(ROOT / "data" / "raw" / "telco_churn.csv", nrows=3)
+        raw.loc[1, "tenure"] = -5  # impossible tenure -> validation error
+        rows, errors = raw_frame_to_model_rows(raw)
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(len(errors), 1)
+        self.assertIn("row 1", errors[0])
+
 
 if __name__ == "__main__":
     unittest.main()

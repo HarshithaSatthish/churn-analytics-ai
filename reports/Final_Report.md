@@ -33,14 +33,18 @@ Exact duplicate indicators are intentionally excluded from the final model when 
 - **O6. Payment method:** electronic-check customers churn at **45.3%**, while bank-transfer and credit-card automatic payment groups are much lower.
 - **O7. Tech support:** customers without tech support churn at **41.6%** compared with **15.2%** among customers with tech support.
 - **O8. Senior-citizen segment:** senior citizens churn at **41.7%** compared with **23.6%** for non-seniors.
+- **O9. Tenure distribution:** the tenure histogram visualizes O4 — 31.0% of customers are within their first year, so the highest-risk tenure segment (O2) is also a large share of the base.
+- **O10. Feature correlation:** the correlation heatmap confirms tenure and total charges move together (longer tenure accumulates charges), while monthly charges correlate with fiber-optic service — the high-price, high-churn profile in O3/O5 is internally consistent rather than a data artifact.
 
 These are descriptive associations. They do not prove that changing one feature by itself would cause churn to rise or fall.
 
 ![Churn by contract](../figures/churn_by_contract.png)
 ![Churn by tenure band](../figures/churn_by_tenure_band.png)
+![Tenure distribution](../figures/tenure_distribution.png)
 ![Monthly charges by churn](../figures/monthly_charges_by_churn.png)
 ![Churn by payment method](../figures/churn_by_payment_method.png)
 ![Churn by tech support](../figures/churn_by_tech_support.png)
+![Feature correlation](../figures/correlation_heatmap.png)
 
 ## 4. Insights
 

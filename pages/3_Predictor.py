@@ -1,5 +1,8 @@
 """Live churn-risk scoring page with logically valid input states."""
+import pandas as pd
 import streamlit as st
+
+from src.features import RAW_BATCH_COLUMNS, raw_frame_to_model_rows
 
 from _shared import (
     RED,
@@ -94,7 +97,7 @@ profile = {
     "monthly": monthly,
 }
 
-if st.button("Score churn risk", type="primary", use_container_width=True):
+if st.button("Score churn risk", type="primary", width="stretch"):
     try:
         X = profile_to_row(profile)
         score = float(model.predict_proba(X)[0, 1])
@@ -208,5 +211,56 @@ if "scored_customer" in st.session_state:
         r2.metric("Expected saves", f"{saves:,.0f}")
         r3.metric("Illustrative net value", f"${net_value:,.0f}")
         st.caption("ROI is a scenario calculator based on user-entered assumptions; it is not a measured experiment result.")
+
+section("Batch scoring")
+st.caption(
+    "Score many customers at once. Upload a CSV with the raw customer columns "
+    "(same schema as the bundled dataset); each row is validated against the same "
+    "feature contract as the single-customer form."
+)
+template = pd.DataFrame(columns=RAW_BATCH_COLUMNS)
+st.download_button(
+    "Download CSV template",
+    template.to_csv(index=False).encode("utf-8"),
+    file_name="batch_template.csv",
+    mime="text/csv",
+)
+upload = st.file_uploader("Upload customer CSV", type=["csv"], key="batch_upload")
+if upload is not None:
+    try:
+        raw = pd.read_csv(upload)
+        X_batch, batch_errors = raw_frame_to_model_rows(raw)
+        batch_scores = model.predict_proba(X_batch)[:, 1]
+        flagged = batch_scores >= cutoff
+        bands = [risk_band(float(s), cutoff)[0] for s in batch_scores]
+
+        b1, b2, b3 = st.columns(3)
+        b1.metric("Customers scored", f"{len(X_batch):,}")
+        b2.metric("Flagged for outreach", f"{int(flagged.sum()):,}")
+        b3.metric("Mean churn score", f"{float(batch_scores.mean()):.1%}")
+        if batch_errors:
+            with st.expander(f"{len(batch_errors)} row(s) skipped"):
+                st.write(batch_errors[:20])
+
+        scored_out = pd.DataFrame(
+            {
+                "customerID": raw["customerID"]
+                if "customerID" in raw.columns
+                else [f"row_{i}" for i in range(len(X_batch))],
+                "churn_risk_score": [round(float(s), 4) for s in batch_scores],
+                "risk_band": bands,
+                "retention_flag": flagged.astype(int),
+            }
+        )
+        st.dataframe(scored_out.head(100), width="stretch", hide_index=True)
+        st.download_button(
+            "Download scored customers",
+            scored_out.to_csv(index=False).encode("utf-8"),
+            file_name="scored_customers.csv",
+            mime="text/csv",
+            key="batch_download",
+        )
+    except ValueError as exc:
+        st.error(str(exc))
 
 page_footer()

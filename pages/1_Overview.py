@@ -88,7 +88,7 @@ segments = segments.rename(
 )
 st.dataframe(
     segments[["Contract", "Internet", "Customers", "Churn rate"]],
-    use_container_width=True,
+    width="stretch",
     hide_index=True,
 )
 st.caption("Only segment combinations with at least 50 customers are shown.")

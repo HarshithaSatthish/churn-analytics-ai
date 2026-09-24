@@ -138,31 +138,31 @@ with services_tab:
         internet = fdf.groupby("InternetService", observed=True)["churn_binary"].mean().sort_values() * 100
         st.dataframe(
             pd.DataFrame({"Churn rate": internet.map(lambda x: f"{x:.1f}%")}),
-            use_container_width=True,
+            width="stretch",
         )
         section("Tech support")
         support = fdf.groupby("TechSupport", observed=True)["churn_binary"].mean().sort_values() * 100
         st.dataframe(
             pd.DataFrame({"Churn rate": support.map(lambda x: f"{x:.1f}%")}),
-            use_container_width=True,
+            width="stretch",
         )
     with right:
         section("Payment method")
         payment = fdf.groupby("PaymentMethod", observed=True)["churn_binary"].mean().sort_values() * 100
         st.dataframe(
             pd.DataFrame({"Churn rate": payment.map(lambda x: f"{x:.1f}%")}),
-            use_container_width=True,
+            width="stretch",
         )
         section("Paperless billing")
         paperless = fdf.groupby("PaperlessBilling", observed=True)["churn_binary"].mean().sort_values() * 100
         st.dataframe(
             pd.DataFrame({"Churn rate": paperless.map(lambda x: f"{x:.1f}%")}),
-            use_container_width=True,
+            width="stretch",
         )
 
 with data_tab:
     st.caption("First 250 rows of the filtered cohort.")
-    st.dataframe(fdf.head(250), use_container_width=True, hide_index=True)
+    st.dataframe(fdf.head(250), width="stretch", hide_index=True)
 
 st.caption("All views above are descriptive associations. They do not establish causal effects.")
 page_footer()

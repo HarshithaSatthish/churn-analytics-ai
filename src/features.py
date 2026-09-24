@@ -105,3 +105,72 @@ def profile_to_model_row(profile: dict) -> pd.DataFrame:
         "num_services": service_count(yes_service_values) + int(profile["internet"] != "No"),
     }
     return pd.DataFrame([row], columns=MODEL_FEATURES)
+
+
+RAW_BATCH_COLUMNS = [
+    "gender", "SeniorCitizen", "Partner", "Dependents", "tenure",
+    "PhoneService", "MultipleLines", "InternetService", "OnlineSecurity",
+    "OnlineBackup", "DeviceProtection", "TechSupport", "StreamingTV",
+    "StreamingMovies", "Contract", "PaperlessBilling", "PaymentMethod",
+    "MonthlyCharges",
+]
+
+
+def _as_bool(value) -> bool:
+    """Accept 1/0, '1'/'0', or Yes/No spellings for SeniorCitizen."""
+    text = str(value).strip().lower()
+    if text in {"1", "yes", "y", "true"}:
+        return True
+    if text in {"0", "no", "n", "false", ""}:
+        return False
+    raise ValueError(f"Unrecognized SeniorCitizen value: {value!r}")
+
+
+def raw_row_to_profile(row: pd.Series) -> dict:
+    """Map one raw-dataset-schema row onto the single-customer UI profile contract."""
+    return {
+        "gender": str(row["gender"]).strip(),
+        "senior": _as_bool(row["SeniorCitizen"]),
+        "partner": str(row["Partner"]).strip(),
+        "dependents": str(row["Dependents"]).strip(),
+        "tenure": int(float(row["tenure"])),
+        "phone": str(row["PhoneService"]).strip(),
+        "multi": str(row["MultipleLines"]).strip(),
+        "internet": str(row["InternetService"]).strip(),
+        "onlinesec": str(row["OnlineSecurity"]).strip(),
+        "onlinebak": str(row["OnlineBackup"]).strip(),
+        "devprot": str(row["DeviceProtection"]).strip(),
+        "techsup": str(row["TechSupport"]).strip(),
+        "tv": str(row["StreamingTV"]).strip(),
+        "movies": str(row["StreamingMovies"]).strip(),
+        "contract": str(row["Contract"]).strip(),
+        "paperless": str(row["PaperlessBilling"]).strip(),
+        "paymethod": str(row["PaymentMethod"]).strip(),
+        "monthly": float(row["MonthlyCharges"]),
+    }
+
+
+def raw_frame_to_model_rows(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
+    """Convert raw-schema customer rows into model rows.
+
+    Returns (model_rows, errors). Rows that fail validation are skipped and
+    reported in errors as "row <index>: <reason>" so batch scoring degrades
+    gracefully instead of failing the whole upload.
+    """
+    missing = [c for c in RAW_BATCH_COLUMNS if c not in df.columns]
+    if missing:
+        raise ValueError(
+            "Upload is missing required columns: " + ", ".join(missing)
+        )
+    frames: list[pd.DataFrame] = []
+    errors: list[str] = []
+    for idx, row in df.iterrows():
+        try:
+            frames.append(profile_to_model_row(raw_row_to_profile(row)))
+        except (ValueError, KeyError, TypeError) as exc:
+            errors.append(f"row {idx}: {exc}")
+    if not frames:
+        raise ValueError(
+            "No valid customer rows found. " + (" ".join(errors[:3]) if errors else "")
+        )
+    return pd.concat(frames, ignore_index=True), errors

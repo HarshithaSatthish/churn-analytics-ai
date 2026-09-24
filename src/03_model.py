@@ -51,6 +51,8 @@ from utils import (
     MODEL_PKL,
     NUMERIC_COLS,
     RANDOM_STATE,
+    RISK_LOW,
+    RISK_VERY_HIGH,
     TARGET,
 )
 
@@ -207,6 +209,22 @@ def main() -> None:
     metrics = {
         "model": "LogisticRegression",
         "random_state": RANDOM_STATE,
+        # Flat top-level headline keys (original project contract). These are the
+        # untouched-test metrics at the default 0.50 cutoff; the validation-chosen
+        # operating cutoff lives under "threshold_selection" / "test_operating".
+        "accuracy": default_metrics["accuracy"],
+        "precision": default_metrics["precision"],
+        "recall": default_metrics["recall"],
+        "f1": default_metrics["f1"],
+        "roc_auc": round(float(roc_auc_score(y_test, test_proba)), 4),
+        "n_test": int(len(y_test)),
+        "churn_rate": round(float(y.mean()), 4),
+        "risk_bands": {
+            "low_max": RISK_LOW,
+            "very_high_min": RISK_VERY_HIGH,
+            "note": "WATCH spans low_max up to the operating cutoff; "
+            "HIGH spans the cutoff up to very_high_min.",
+        },
         "split": {
             "strategy": "stratified 60/20/20 train/validation/test",
             "train_rows": int(len(y_train)),
@@ -224,7 +242,6 @@ def main() -> None:
         },
         "test_default": default_metrics,
         "test_operating": operating_metrics,
-        "roc_auc": round(float(roc_auc_score(y_test, test_proba)), 4),
         "average_precision": round(float(average_precision_score(y_test, test_proba)), 4),
         "brier_score": round(float(brier_score_loss(y_test, test_proba)), 4),
         "majority_baseline_accuracy": round(majority_accuracy, 4),

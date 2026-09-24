@@ -73,7 +73,7 @@ with st.expander("Default 0.50 vs operating cutoff"):
             {"Cutoff": f"{threshold:.2f} (operating)", **{k: operating[k] for k in ["accuracy", "precision", "recall", "f1", "tp", "fp", "fn", "tn"]}},
         ]
     )
-    st.dataframe(compare, use_container_width=True, hide_index=True)
+    st.dataframe(compare, width="stretch", hide_index=True)
 
 section("Interpretable model effects")
 st.markdown(
@@ -88,7 +88,7 @@ effects["Odds ratio"] = effects["odds_ratio"].map(lambda value: f"{value:.2f}x")
 effects = effects.rename(columns={"comparison": "Comparison"})
 st.dataframe(
     effects[["Feature", "Direction", "Coefficient", "Odds ratio", "Comparison"]].head(15),
-    use_container_width=True,
+    width="stretch",
     hide_index=True,
 )
 st.caption("Coefficients are conditional model associations, not causal effects.")

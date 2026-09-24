@@ -1,6 +1,18 @@
 {
   "model": "LogisticRegression",
   "random_state": 42,
+  "accuracy": 0.8013,
+  "precision": 0.661,
+  "recall": 0.516,
+  "f1": 0.5796,
+  "roc_auc": 0.8451,
+  "n_test": 1409,
+  "churn_rate": 0.2654,
+  "risk_bands": {
+    "low_max": 0.2,
+    "very_high_min": 0.6,
+    "note": "WATCH spans low_max up to the operating cutoff; HIGH spans the cutoff up to very_high_min."
+  },
   "split": {
     "strategy": "stratified 60/20/20 train/validation/test",
     "train_rows": 4225,
@@ -46,7 +58,6 @@
     "fn": 113,
     "tp": 261
   },
-  "roc_auc": 0.8451,
   "average_precision": 0.6487,
   "brier_score": 0.1366,
   "majority_baseline_accuracy": 0.7346,

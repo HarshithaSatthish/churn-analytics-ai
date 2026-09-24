@@ -22,6 +22,13 @@ A complete, reproducible customer-churn project built on the IBM Telco Customer 
 
 The bundled dataset is the IBM Telco Customer Churn dataset. A copy is stored at `data/raw/telco_churn.csv` so the project can be rebuilt without a runtime download.
 
+## Dataset source
+
+- **Dataset:** IBM Telco Customer Churn (IBM sample data)
+- **Source:** [Kaggle — blastchar/telco-customer-churn](https://www.kaggle.com/datasets/blastchar/telco-customer-churn)
+- **Shape:** 7,043 rows × 21 columns; target `Churn` (Yes/No), ~26.5% churn rate
+- **License note:** public IBM sample data; a static snapshot (not a time series), so results describe this cohort, not a forecast over time
+
 ## Repository structure
 
 ```text

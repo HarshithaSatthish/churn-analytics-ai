@@ -36,6 +36,38 @@ def service_count(values: Iterable[str]) -> int:
     return sum(1 for value in values if value == "Yes")
 
 
+YES_NO = frozenset({"Yes", "No"})
+YES_NO_NIS = frozenset({"Yes", "No", "No internet service"})
+
+# Training vocabulary for every categorical profile field. Unknown values must
+# fail validation instead of silently scoring as all-zero one-hots
+# (the encoder uses handle_unknown="ignore").
+ALLOWED_CATEGORIES = {
+    "gender": frozenset({"Female", "Male"}),
+    "partner": YES_NO,
+    "dependents": YES_NO,
+    "phone": YES_NO,
+    "multi": frozenset({"Yes", "No", "No phone service"}),
+    "internet": frozenset({"DSL", "Fiber optic", "No"}),
+    "onlinesec": YES_NO_NIS,
+    "onlinebak": YES_NO_NIS,
+    "devprot": YES_NO_NIS,
+    "techsup": YES_NO_NIS,
+    "tv": YES_NO_NIS,
+    "movies": YES_NO_NIS,
+    "contract": frozenset({"Month-to-month", "One year", "Two year"}),
+    "paperless": YES_NO,
+    "paymethod": frozenset(
+        {
+            "Electronic check",
+            "Mailed check",
+            "Bank transfer (automatic)",
+            "Credit card (automatic)",
+        }
+    ),
+}
+
+
 def validate_profile(profile: dict) -> list[str]:
     """Return human-readable errors for impossible or invalid profiles."""
     errors: list[str] = []
@@ -66,6 +98,14 @@ def validate_profile(profile: dict) -> list[str]:
                     "Internet add-ons must be Yes/No when DSL or Fiber optic is selected."
                 )
                 break
+
+    for field, allowed in ALLOWED_CATEGORIES.items():
+        value = profile.get(field)
+        if value not in allowed:
+            errors.append(
+                f"Unrecognized value {value!r} for {field}; "
+                "expected one of: " + ", ".join(sorted(allowed)) + "."
+            )
     return errors
 
 
@@ -150,12 +190,14 @@ def raw_row_to_profile(row: pd.Series) -> dict:
     }
 
 
-def raw_frame_to_model_rows(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
+def raw_frame_to_model_rows(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str], list]:
     """Convert raw-schema customer rows into model rows.
 
-    Returns (model_rows, errors). Rows that fail validation are skipped and
-    reported in errors as "row <index>: <reason>" so batch scoring degrades
-    gracefully instead of failing the whole upload.
+    Returns (model_rows, errors, valid_labels). Rows that fail validation are
+    skipped and reported in errors as "row <index>: <reason>" so batch scoring
+    degrades gracefully instead of failing the whole upload. valid_labels are
+    the source index labels of the rows that converted, so outputs (scores,
+    bands, IDs) stay aligned to exactly the rows that were scored.
     """
     missing = [c for c in RAW_BATCH_COLUMNS if c not in df.columns]
     if missing:
@@ -163,14 +205,16 @@ def raw_frame_to_model_rows(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
             "Upload is missing required columns: " + ", ".join(missing)
         )
     frames: list[pd.DataFrame] = []
+    labels: list = []
     errors: list[str] = []
     for idx, row in df.iterrows():
         try:
             frames.append(profile_to_model_row(raw_row_to_profile(row)))
+            labels.append(idx)
         except (ValueError, KeyError, TypeError) as exc:
             errors.append(f"row {idx}: {exc}")
     if not frames:
         raise ValueError(
             "No valid customer rows found. " + (" ".join(errors[:3]) if errors else "")
         )
-    return pd.concat(frames, ignore_index=True), errors
+    return pd.concat(frames, ignore_index=True), errors, labels

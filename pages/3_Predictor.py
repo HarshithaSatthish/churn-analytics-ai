@@ -229,10 +229,11 @@ upload = st.file_uploader("Upload customer CSV", type=["csv"], key="batch_upload
 if upload is not None:
     try:
         raw = pd.read_csv(upload)
-        X_batch, batch_errors = raw_frame_to_model_rows(raw)
+        X_batch, batch_errors, valid_labels = raw_frame_to_model_rows(raw)
         batch_scores = model.predict_proba(X_batch)[:, 1]
         flagged = batch_scores >= cutoff
         bands = [risk_band(float(s), cutoff)[0] for s in batch_scores]
+        valid_raw = raw.loc[valid_labels]
 
         b1, b2, b3 = st.columns(3)
         b1.metric("Customers scored", f"{len(X_batch):,}")
@@ -244,9 +245,9 @@ if upload is not None:
 
         scored_out = pd.DataFrame(
             {
-                "customerID": raw["customerID"]
+                "customerID": valid_raw["customerID"].tolist()
                 if "customerID" in raw.columns
-                else [f"row_{i}" for i in range(len(X_batch))],
+                else [f"row_{i}" for i in valid_labels],
                 "churn_risk_score": [round(float(s), 4) for s in batch_scores],
                 "risk_band": bands,
                 "retention_flag": flagged.astype(int),

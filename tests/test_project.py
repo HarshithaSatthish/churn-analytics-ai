@@ -94,9 +94,10 @@ class ProjectContractTests(unittest.TestCase):
         from src.features import raw_frame_to_model_rows
 
         raw = pd.read_csv(ROOT / "data" / "raw" / "telco_churn.csv", nrows=5)
-        rows, errors = raw_frame_to_model_rows(raw)
+        rows, errors, labels = raw_frame_to_model_rows(raw)
         self.assertEqual(errors, [])
         self.assertEqual(len(rows), 5)
+        self.assertEqual(list(labels), list(range(5)))
         self.assertEqual(list(rows.columns), MODEL_FEATURES)
 
     def test_batch_skips_invalid_rows(self):
@@ -104,10 +105,43 @@ class ProjectContractTests(unittest.TestCase):
 
         raw = pd.read_csv(ROOT / "data" / "raw" / "telco_churn.csv", nrows=3)
         raw.loc[1, "tenure"] = -5  # impossible tenure -> validation error
-        rows, errors = raw_frame_to_model_rows(raw)
+        rows, errors, labels = raw_frame_to_model_rows(raw)
         self.assertEqual(len(rows), 2)
         self.assertEqual(len(errors), 1)
         self.assertIn("row 1", errors[0])
+        self.assertEqual(list(labels), [0, 2])
+
+    def test_batch_rejects_unseen_category(self):
+        # An invented category must be skipped with a clear error, not silently
+        # scored (the encoder uses handle_unknown="ignore").
+        from src.features import raw_frame_to_model_rows
+
+        raw = pd.read_csv(ROOT / "data" / "raw" / "telco_churn.csv", nrows=2)
+        raw.loc[1, "Contract"] = "Weekly"
+        rows, errors, labels = raw_frame_to_model_rows(raw)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(list(labels), [0])
+        self.assertEqual(len(errors), 1)
+        self.assertIn("Unrecognized value", errors[0])
+
+    def test_batch_output_ids_stay_aligned_to_scored_rows(self):
+        # Regression: with mixed valid/invalid rows, the output customer IDs
+        # must align exactly to the rows that were scored, not the full upload.
+        from src.features import raw_frame_to_model_rows
+
+        raw = pd.read_csv(ROOT / "data" / "raw" / "telco_churn.csv", nrows=6)
+        raw.loc[2, "tenure"] = -5  # invalid -> skipped
+        raw.loc[4, "MonthlyCharges"] = -50.0  # impossible charge -> validation error
+        rows, errors, labels = raw_frame_to_model_rows(raw)
+        valid_raw = raw.loc[labels]
+        ids = valid_raw["customerID"].tolist()
+        self.assertEqual(len(ids), len(rows))
+        self.assertEqual(list(labels), [0, 1, 3, 5])
+        self.assertEqual(
+            ids,
+            [raw.loc[i, "customerID"] for i in [0, 1, 3, 5]],
+        )
+        self.assertEqual(len(errors), 2)
 
 
 if __name__ == "__main__":

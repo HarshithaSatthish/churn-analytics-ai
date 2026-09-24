@@ -23,7 +23,7 @@ Engineered analysis features include:
 
 Exact duplicate indicators are intentionally excluded from the final model when the original categorical variable already carries the same information.
 
-## 3. Exploratory observations
+## 3. Observations
 
 - **O1. Contract:** month-to-month customers churn at **42.7%**, compared with **11.3%** for one-year contracts and **2.8%** for two-year contracts.
 - **O2. Tenure:** customers in months 0-6 churn at **52.9%**, while the 25+ month group churns at **14.0%**.
@@ -49,7 +49,7 @@ These are descriptive associations. They do not prove that changing one feature 
 - **I3. Support and billing variables are useful targeting signals.** No-tech-support and electronic-check groups show substantially higher churn, but these relationships may reflect other underlying customer differences.
 - **I4. A predictive score can prioritize outreach more effectively than using one segment rule alone.** The model reaches a test ROC-AUC of **0.8451**, showing useful ranking ability.
 
-## 5. Hypotheses for future testing
+## 5. Hypotheses
 
 These are hypotheses for controlled testing, not conclusions from the observational dataset:
 

@@ -1,6 +1,6 @@
 # Customer Churn Analytics with AI — Final Project Report
 
-**Author:** Akshay  
+**Author:** Harshitha Sathish  
 **Date:** 2026-09-24  
 **Program:** IBM SkillsBuild Academic Internship (BharatCares / AICTE) — Data Analytics with AI
 

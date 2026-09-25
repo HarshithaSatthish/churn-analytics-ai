@@ -1,0 +1,24 @@
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    STREAMLIT_SERVER_HEADLESS=true \
+    STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+
+WORKDIR /app
+
+COPY requirements-runtime.txt .
+RUN python -m pip install --upgrade pip && \
+    python -m pip install --prefer-binary -r requirements-runtime.txt
+
+COPY app.py _shared.py ./
+COPY pages ./pages
+COPY src/__init__.py src/features.py src/utils.py ./src/
+COPY data/clean ./data/clean
+COPY models ./models
+COPY figures ./figures
+COPY reports ./reports
+COPY .streamlit ./.streamlit
+
+CMD ["sh", "-c", "streamlit run app.py --server.address=0.0.0.0 --server.port=${PORT:-80} --server.headless=true --browser.gatherUsageStats=false"]

@@ -39,7 +39,7 @@ c4.metric(f"Precision @ {threshold:.2f}", f"{operating['precision']:.1%}")
 c5.metric(f"F1 @ {threshold:.2f}", f"{operating['f1']:.3f}")
 
 st.markdown(
-    '<div class="callout"><b>Interpretation:</b> the model ranks churn risk well (ROC-AUC 0.845). '
+    f'<div class="callout"><b>Interpretation:</b> the model ranks churn risk well (ROC-AUC {metrics["roc_auc"]:.3f}). '
     f'At the validation-selected {threshold:.0%} operating cutoff, it captures '
     f'{operating["tp"]} of {operating["tp"] + operating["fn"]} churners in the untouched test set, '
     f'with {operating["fp"]} false positives.</div>',

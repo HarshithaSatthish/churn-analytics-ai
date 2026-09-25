@@ -1,28 +1,54 @@
-FINAL SUBMISSION VALIDATION
+FINAL VALIDATION — MERGED SUBMISSION BUILD
 Date: 2026-09-24
+Live GitHub base inspected: HarshithaSatthish/churn-analytics-ai @ 5bfc07bf81e16949c24cc860a1ecacd8d6470a3d
+Merge strategy: latest GitHub fixes + Vercel/deployment hardening from audited package
 
-Automated checks completed:
-- Python source compilation: PASS
-- Raw -> clean pipeline: PASS (7,043 rows; 11 blank TotalCharges fixed; 0 rows dropped)
-- Reproducible EDA generation: PASS
-- Leakage-safe model training: PASS
-- Serialized model inference: PASS
-- Fresh-clone wiring validation: PASS
-- Contract/unit tests: PASS (8/8)
-- Stale metric scan: PASS
-- Secret / absolute-local-path scan: PASS
-- Required deployment files: PASS
+RESULT: PASS
 
-Final untouched-test model metrics:
-- ROC-AUC: 0.8451
-- Average precision: 0.6487
-- Brier score: 0.1366
-- Default 0.50: accuracy 0.8013, precision 0.6610, recall 0.5160, F1 0.5796
-- Validation-selected 0.36: accuracy 0.7771, precision 0.5649, recall 0.6979, F1 0.6244
+Build checks
+- Python compileall: PASS
+- Raw data cleaning: PASS (7,043 rows, 11 blank TotalCharges repaired, 0 rows dropped)
+- EDA generation: PASS (7 figures)
+- Model retraining: PASS
+- src/04_validate.py: VALIDATION PASSED
+- src/05_deployment_check.py: DEPLOYMENT CHECK PASSED
+- Core/unit tests: 16/16 PASS
+- Streamlit AppTest tests included: 2 (execute in CI where Streamlit is installed)
+- Random valid-profile fuzz test: 5,000/5,000 PASS
 
-Manual declaration check still required before submission:
-- Confirm the author name shown in README.md and reports/Final_Report.md.
-- Confirm the AI-assistance disclosure matches the submitter's actual usage and academic policy.
+Model contract
+- Split: stratified 60/20/20 train/validation/test
+- Threshold selected on validation only: 0.36
+- Untouched-test ROC-AUC: 0.8451
+- Operating test accuracy: 0.7771
+- Operating test precision: 0.5649
+- Operating test recall: 0.6979
+- Operating test F1: 0.6244
+- Default 0.50 accuracy: 0.8013
+- Majority-class accuracy baseline: 0.7346
 
-Environment note:
-- Streamlit was not installed in the audit sandbox and package downloads were unavailable, so a live browser launch was not possible here. Streamlit source compiled successfully, non-UI feature/model wiring is tested, dependencies are pinned, and deployment layout follows Streamlit Community Cloud requirements.
+Merged GitHub fixes retained
+- Batch CSV scoring
+- Correct score/customerID alignment when invalid rows are skipped
+- Unknown categorical values rejected rather than silently one-hot ignored
+- Config-driven risk bands
+- Flat metric compatibility keys
+- Report Observations/Hypotheses headings
+- Demo walkthrough script
+- Deprecated Streamlit width arguments removed
+
+Additional deployment/UI hardening retained
+- Dockerfile.vercel + dynamic PORT
+- vercel.json with Fluid compute
+- lean requirements-runtime.txt
+- Python 3.12 pin
+- deployment contract validator
+- Streamlit AppTest smoke tests
+- model-fit MonthlyCharges range enforced in UI
+- stale single-customer score cleared when inputs change
+- Overview headline/observation values calculated from dataset
+
+Manual pre-submission checks still required
+1. Confirm the author name "Akshay" is correct.
+2. Confirm the AI-assistance disclosure accurately reflects the submitter's work/policy.
+3. Deploy the final build and record the real ≤3-minute demo video from that deployment.

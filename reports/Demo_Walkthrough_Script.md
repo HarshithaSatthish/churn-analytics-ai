@@ -32,23 +32,24 @@ Suggested total: ~2:45. Read the lines in *italics* while performing each shot.
 - Click **Predictor**. Fill the form quickly: tenure 3, fiber optic, month-to-month,
   no tech support. Click **Score churn risk**.
 - Point at the gauge, the risk band, and the "Why this score" contributions.
-- *"A 3-month fiber customer scores 67% — flagged HIGH. The bars show exactly which
-  factors push the score up, straight from the model's coefficients."*
+- *"A 3-month fiber customer scores about two-thirds risk and is flagged HIGH. The bars show
+  which factors push the score up, straight from the model's coefficients."*
 - Open the **What-if** tab, change contract to Two year, click Compare scenario.
-- *"Switching the same customer to a two-year contract drops the score — that's the
-  retention lever, quantified."*
+- *"Changing the same profile to a two-year contract changes the model score. This is a model
+  scenario comparison, not proof that the contract change itself causes retention."*
 
 **2:00–2:30 — Batch scoring**
 - Scroll to **Batch scoring**. Upload your prepared CSV, show the summary metrics
   and the scored table, click **Download scored customers**.
-- *"For real operations, upload a whole customer list and get every account scored,
-  banded, and flagged in one file."*
+- *"For operations, a customer list can be validated, scored, banded, and flagged in one file."*
 
 **2:30–2:45 — Model & Report (close)**
 - Click **Model & Report**. Scroll past the ROC curve to the methodology.
 - *"The cutoff was chosen on validation data only, then the model was evaluated once
-  on an untouched test set — no leakage. Full report is downloadable from this page."*
+  on an untouched test set — no leakage. The full report is downloadable from this page."*
 
 ## After recording
-- Trim silence at the start/end. Export as MP4, keep it under 3 minutes.
-- Save as `demo_walkthrough.mp4` in the project root (it is the submission demo artifact).
+- Trim silence at the start/end. Export as MP4 and keep it under 3 minutes.
+- Recommended filename: `demo_walkthrough.mp4`.
+- If your submission portal expects the video separately, upload it there. If it explicitly
+  requires the video inside the repository, remove the `*.mp4` ignore rule before committing it.

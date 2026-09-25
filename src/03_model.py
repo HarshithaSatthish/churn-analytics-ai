@@ -209,9 +209,6 @@ def main() -> None:
     metrics = {
         "model": "LogisticRegression",
         "random_state": RANDOM_STATE,
-        # Flat top-level headline keys (original project contract). These are the
-        # untouched-test metrics at the default 0.50 cutoff; the validation-chosen
-        # operating cutoff lives under "threshold_selection" / "test_operating".
         "accuracy": default_metrics["accuracy"],
         "precision": default_metrics["precision"],
         "recall": default_metrics["recall"],
@@ -265,6 +262,13 @@ def main() -> None:
                 "target": TARGET,
                 "operating_threshold": round(float(threshold), 2),
                 "one_hot_drop": "first",
+                "inference_ranges": {
+                    col: {
+                        "min": float(X_train_val[col].min()),
+                        "max": float(X_train_val[col].max()),
+                    }
+                    for col in NUMERIC_COLS
+                },
             },
             indent=2,
         ),

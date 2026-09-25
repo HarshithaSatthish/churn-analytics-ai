@@ -67,8 +67,9 @@ with right:
     st.pyplot(fig, clear_figure=True)
 
 st.markdown(
-    '<div class="callout"><b>Headline:</b> month-to-month customers churn at 42.7%, '
-    'compared with 11.3% on one-year contracts and 2.8% on two-year contracts. '
+    '<div class="callout"><b>Headline:</b> month-to-month customers churn at '
+    f'{contract["Month-to-month"]:.1f}%, compared with {contract["One year"]:.1f}% on one-year '
+    f'contracts and {contract["Two year"]:.1f}% on two-year contracts. '
     'This is an association, not proof that changing a contract alone causes retention.</div>',
     unsafe_allow_html=True,
 )
@@ -93,28 +94,33 @@ st.dataframe(
 )
 st.caption("Only segment combinations with at least 50 customers are shown.")
 
+tenure_rates = df.groupby("tenure_band", observed=True)["churn_binary"].mean() * 100
+internet_rates = df.groupby("InternetService", observed=True)["churn_binary"].mean() * 100
+payment_rates = df.groupby("PaymentMethod", observed=True)["churn_binary"].mean() * 100
+support_rates = df.groupby("TechSupport", observed=True)["churn_binary"].mean() * 100
+
 section("Four observations to remember")
 obs1, obs2 = st.columns(2)
 with obs1:
     st.markdown(
         '<div class="card"><b>New-customer risk</b><br><span class="small-muted">'
-        'Customers in months 0-6 churn at 52.9%; customers at 25+ months churn at 14.0%.</span></div>',
+        f'Customers in months 0-6 churn at {tenure_rates["0-6"]:.1f}%; customers at 25+ months churn at {tenure_rates["25+"]:.1f}%.</span></div>',
         unsafe_allow_html=True,
     )
     st.markdown(
         '<div class="card"><b>Fiber segment</b><br><span class="small-muted">'
-        'Fiber-optic customers churn at 41.9%, versus 19.0% for DSL customers.</span></div>',
+        f'Fiber-optic customers churn at {internet_rates["Fiber optic"]:.1f}%, versus {internet_rates["DSL"]:.1f}% for DSL customers.</span></div>',
         unsafe_allow_html=True,
     )
 with obs2:
     st.markdown(
         '<div class="card"><b>Payment pattern</b><br><span class="small-muted">'
-        'Electronic-check customers churn at 45.3%; this is a targeting clue, not a causal conclusion.</span></div>',
+        f'Electronic-check customers churn at {payment_rates["Electronic check"]:.1f}%; this is a targeting clue, not a causal conclusion.</span></div>',
         unsafe_allow_html=True,
     )
     st.markdown(
         '<div class="card"><b>Support pattern</b><br><span class="small-muted">'
-        'Customers without tech support churn at 41.6% versus 15.2% among customers with support.</span></div>',
+        f'Customers without tech support churn at {support_rates["No"]:.1f}% versus {support_rates["Yes"]:.1f}% among customers with support.</span></div>',
         unsafe_allow_html=True,
     )
 

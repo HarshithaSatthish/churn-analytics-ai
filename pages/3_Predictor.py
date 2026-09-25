@@ -12,6 +12,7 @@ from _shared import (
     contribution_bars,
     gauge,
     load_clean,
+    load_feature_info,
     load_metrics,
     load_model,
     model_contributions,
@@ -29,7 +30,13 @@ st.caption("Score one customer with the same feature contract used by the traine
 
 model = load_model()
 metrics = load_metrics()
+feature_info = load_feature_info()
 cutoff = float(metrics["threshold_selection"]["value"])
+monthly_range = feature_info.get("inference_ranges", {}).get(
+    "MonthlyCharges", {"min": 0.0, "max": 500.0}
+)
+monthly_min = float(monthly_range["min"])
+monthly_max = float(monthly_range["max"])
 
 st.markdown(
     '<div class="callout"><b>Decision rule:</b> a score at or above '
@@ -52,8 +59,14 @@ with left:
         "Payment method",
         ["Electronic check", "Mailed check", "Bank transfer (automatic)", "Credit card (automatic)"],
     )
-    monthly = st.number_input("Monthly charges ($)", min_value=0.0, max_value=500.0,
-                              value=70.0, step=1.0)
+    monthly = st.number_input(
+        "Monthly charges ($)",
+        min_value=monthly_min,
+        max_value=monthly_max,
+        value=min(max(70.0, monthly_min), monthly_max),
+        step=1.0,
+        help=f"Model-fit range: ${monthly_min:.2f} to ${monthly_max:.2f}.",
+    )
 
 with right:
     st.subheader("Services")
@@ -101,9 +114,13 @@ if st.button("Score churn risk", type="primary", width="stretch"):
     try:
         X = profile_to_row(profile)
         score = float(model.predict_proba(X)[0, 1])
-        st.session_state["scored_customer"] = {"profile": profile, "X": X, "score": score}
+        st.session_state["scored_customer"] = {"profile": dict(profile), "X": X, "score": score}
     except ValueError as exc:
         st.error(str(exc))
+
+if "scored_customer" in st.session_state and st.session_state["scored_customer"]["profile"] != profile:
+    st.session_state.pop("scored_customer", None)
+    st.warning("Inputs changed since the last score. Click **Score churn risk** to refresh the result.")
 
 if "scored_customer" in st.session_state:
     scored = st.session_state["scored_customer"]
@@ -140,8 +157,8 @@ if "scored_customer" in st.session_state:
     explain_tab, whatif_tab, roi_tab = st.tabs(["Why this score", "What-if", "Portfolio ROI"])
     with explain_tab:
         st.markdown(
-            "These are exact contributions to the logistic model's **log-odds** for this profile. "
-            "They explain the model; they are not causal claims."
+            "These are exact feature contributions to the logistic model's **log-odds** for this profile "
+            "(the intercept is not displayed). They explain the model; they are not causal claims."
         )
         drivers, protectors = model_contributions(model, scored["X"])
         col_a, col_b = st.columns(2)
@@ -153,7 +170,7 @@ if "scored_customer" in st.session_state:
             contribution_bars(protectors, TEAL)
 
     with whatif_tab:
-        st.markdown("Change three actionable account attributes and compare against the scored baseline.")
+        st.markdown("Change three scenario attributes and compare against the scored baseline.")
         w1, w2, w3 = st.columns(3)
         contract_options = ["Month-to-month", "One year", "Two year"]
         w_contract = w1.selectbox(
@@ -164,8 +181,8 @@ if "scored_customer" in st.session_state:
         w_tenure = w2.slider("What-if tenure", 0, 72, int(scored["profile"]["tenure"]), key="whatif_tenure")
         w_monthly = w3.number_input(
             "What-if monthly charge ($)",
-            min_value=0.0,
-            max_value=500.0,
+            min_value=monthly_min,
+            max_value=monthly_max,
             value=float(scored["profile"]["monthly"]),
             step=1.0,
             key="whatif_monthly",
@@ -232,7 +249,7 @@ if upload is not None:
         X_batch, batch_errors, valid_labels = raw_frame_to_model_rows(raw)
         batch_scores = model.predict_proba(X_batch)[:, 1]
         flagged = batch_scores >= cutoff
-        bands = [risk_band(float(s), cutoff)[0] for s in batch_scores]
+        bands = [risk_band(float(score_value), cutoff)[0] for score_value in batch_scores]
         valid_raw = raw.loc[valid_labels]
 
         b1, b2, b3 = st.columns(3)
@@ -248,7 +265,7 @@ if upload is not None:
                 "customerID": valid_raw["customerID"].tolist()
                 if "customerID" in raw.columns
                 else [f"row_{i}" for i in valid_labels],
-                "churn_risk_score": [round(float(s), 4) for s in batch_scores],
+                "churn_risk_score": [round(float(score_value), 4) for score_value in batch_scores],
                 "risk_band": bands,
                 "retention_flag": flagged.astype(int),
             }
@@ -261,7 +278,8 @@ if upload is not None:
             mime="text/csv",
             key="batch_download",
         )
-    except ValueError as exc:
+    except (ValueError, pd.errors.ParserError) as exc:
         st.error(str(exc))
+
 
 page_footer()

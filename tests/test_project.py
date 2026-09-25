@@ -62,6 +62,19 @@ class ProjectContractTests(unittest.TestCase):
         self.assertEqual(int(clean[MODEL_FEATURES].isna().sum().sum()), 0)
         self.assertTrue(clean["customerID"].is_unique)
 
+    def test_feature_info_contains_inference_domain(self):
+        info = json.loads((ROOT / "models" / "feature_info.json").read_text())
+        monthly = info["inference_ranges"]["MonthlyCharges"]
+        self.assertLessEqual(monthly["min"], 70.0)
+        self.assertGreaterEqual(monthly["max"], 70.0)
+
+    def test_vercel_deployment_contract(self):
+        config = json.loads((ROOT / "vercel.json").read_text())
+        self.assertTrue(config["fluid"])
+        dockerfile = (ROOT / "Dockerfile.vercel").read_text()
+        self.assertIn("streamlit run app.py", dockerfile)
+        self.assertIn("${PORT:-80}", dockerfile)
+
     def test_documented_metrics_match_final_artifact(self):
         metrics = json.loads((ROOT / "models" / "metrics.json").read_text())
         readme = (ROOT / "README.md").read_text()
@@ -75,6 +88,7 @@ class ProjectContractTests(unittest.TestCase):
         for token in tokens:
             self.assertIn(token, readme)
             self.assertIn(token, report)
+
 
     def test_metrics_has_flat_contract_keys(self):
         metrics = json.loads((ROOT / "models" / "metrics.json").read_text())
@@ -92,7 +106,6 @@ class ProjectContractTests(unittest.TestCase):
 
     def test_batch_rows_from_raw_schema(self):
         from src.features import raw_frame_to_model_rows
-
         raw = pd.read_csv(ROOT / "data" / "raw" / "telco_churn.csv", nrows=5)
         rows, errors, labels = raw_frame_to_model_rows(raw)
         self.assertEqual(errors, [])
@@ -102,9 +115,8 @@ class ProjectContractTests(unittest.TestCase):
 
     def test_batch_skips_invalid_rows(self):
         from src.features import raw_frame_to_model_rows
-
         raw = pd.read_csv(ROOT / "data" / "raw" / "telco_churn.csv", nrows=3)
-        raw.loc[1, "tenure"] = -5  # impossible tenure -> validation error
+        raw.loc[1, "tenure"] = -5
         rows, errors, labels = raw_frame_to_model_rows(raw)
         self.assertEqual(len(rows), 2)
         self.assertEqual(len(errors), 1)
@@ -112,10 +124,7 @@ class ProjectContractTests(unittest.TestCase):
         self.assertEqual(list(labels), [0, 2])
 
     def test_batch_rejects_unseen_category(self):
-        # An invented category must be skipped with a clear error, not silently
-        # scored (the encoder uses handle_unknown="ignore").
         from src.features import raw_frame_to_model_rows
-
         raw = pd.read_csv(ROOT / "data" / "raw" / "telco_churn.csv", nrows=2)
         raw.loc[1, "Contract"] = "Weekly"
         rows, errors, labels = raw_frame_to_model_rows(raw)
@@ -125,24 +134,17 @@ class ProjectContractTests(unittest.TestCase):
         self.assertIn("Unrecognized value", errors[0])
 
     def test_batch_output_ids_stay_aligned_to_scored_rows(self):
-        # Regression: with mixed valid/invalid rows, the output customer IDs
-        # must align exactly to the rows that were scored, not the full upload.
         from src.features import raw_frame_to_model_rows
-
         raw = pd.read_csv(ROOT / "data" / "raw" / "telco_churn.csv", nrows=6)
-        raw.loc[2, "tenure"] = -5  # invalid -> skipped
-        raw.loc[4, "MonthlyCharges"] = -50.0  # impossible charge -> validation error
+        raw.loc[2, "tenure"] = -5
+        raw.loc[4, "MonthlyCharges"] = -50.0
         rows, errors, labels = raw_frame_to_model_rows(raw)
         valid_raw = raw.loc[labels]
         ids = valid_raw["customerID"].tolist()
         self.assertEqual(len(ids), len(rows))
         self.assertEqual(list(labels), [0, 1, 3, 5])
-        self.assertEqual(
-            ids,
-            [raw.loc[i, "customerID"] for i in [0, 1, 3, 5]],
-        )
+        self.assertEqual(ids, [raw.loc[i, "customerID"] for i in [0, 1, 3, 5]])
         self.assertEqual(len(errors), 2)
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -18,16 +18,17 @@ A complete, reproducible customer-churn project built on the IBM Telco Customer 
 - **Operating cutoff:** **0.36**, selected to maximize validation precision while maintaining at least 70% validation recall.
 - **Untouched-test operating metrics:** accuracy **0.7771**, precision **0.5649**, recall **0.6979**, F1 **0.6244**.
 - **Interactive Streamlit UI:** overview, cohort explorer, logically constrained live predictor, explanation/what-if tools, and model/report page.
-- **Deployment support:** Streamlit Community Cloud layout, Dockerfile, health check, CI workflow, and a fresh-clone validation script.
+- **Deployment support:** Vercel container deployment, Streamlit Community Cloud, Docker, health checks, CI, and fresh-clone/deployment validation scripts.
 
 The bundled dataset is the IBM Telco Customer Churn dataset. A copy is stored at `data/raw/telco_churn.csv` so the project can be rebuilt without a runtime download.
 
 ## Dataset source
 
 - **Dataset:** IBM Telco Customer Churn (IBM sample data)
-- **Source:** [Kaggle — blastchar/telco-customer-churn](https://www.kaggle.com/datasets/blastchar/telco-customer-churn)
-- **Shape:** 7,043 rows × 21 columns; target `Churn` (Yes/No), ~26.5% churn rate
-- **License note:** public IBM sample data; a static snapshot (not a time series), so results describe this cohort, not a forecast over time
+- **Source mirror:** [Kaggle — blastchar/telco-customer-churn](https://www.kaggle.com/datasets/blastchar/telco-customer-churn)
+- **IBM project reference:** `https://github.com/IBM/telco-customer-churn-on-icp4d`
+- **Shape:** 7,043 rows × 21 raw columns; target `Churn` (Yes/No), ~26.5% churn rate
+- **Scope note:** this is a static sample, not a time series, so results describe this cohort rather than a temporal forecast.
 
 ## Repository structure
 
@@ -44,7 +45,8 @@ churn-analytics-ai/
 │   ├── 01_clean.py                # raw -> cleaned data
 │   ├── 02_eda.py                  # reproducible EDA figures/findings
 │   ├── 03_model.py                # train/validate/test + artifacts
-│   ├── 04_validate.py             # fresh-clone integrity check
+│   ├── 04_validate.py             # fresh-clone data/model integrity check
+│   ├── 05_deployment_check.py     # Docker/Vercel deployment contract check
 │   ├── features.py                # shared predictor/model feature contract
 │   └── utils.py                   # paths and constants
 ├── data/
@@ -57,10 +59,15 @@ churn-analytics-ai/
 │   └── feature_importance.csv
 ├── figures/                       # generated EDA/model figures
 ├── reports/Final_Report.md
+├── reports/Demo_Walkthrough_Script.md # ≤3 minute faceless demo recording plan
 ├── notebooks/churn_project_colab.ipynb
 ├── .streamlit/config.toml
+├── tests/                          # model/feature + Streamlit AppTest smoke tests
 ├── .github/workflows/ci.yml
 ├── Dockerfile
+├── Dockerfile.vercel
+├── vercel.json
+├── requirements-runtime.txt
 ├── DEPLOYMENT.md
 └── requirements.txt
 ```
@@ -132,13 +139,20 @@ Additional metrics: **ROC-AUC 0.8451**, average precision **0.6487**, Brier scor
 - **Overview:** business KPIs and highest-churn segments.
 - **Explore:** interactive cohort filters, segment views, billing/tenure distributions, service/payment comparisons, and CSV export.
 - **Predictor:** live scoring with impossible service combinations prevented, a validation-selected retention flag, local model explanations, what-if scenarios, and an illustrative ROI calculator.
+- **Batch scoring:** upload raw-schema customer CSVs; invalid rows are reported and valid IDs remain aligned to their scores.
 - **Model & Report:** untouched-test metrics, threshold-selection evidence, confusion matrix, ROC curve, interpretable coefficient effects, methodology, limitations, and downloadable report.
+
+## Demo video
+
+A faceless **≤3 minute** recording script is provided at [`reports/Demo_Walkthrough_Script.md`](reports/Demo_Walkthrough_Script.md). Record the deployed dashboard after deployment so the video shows the exact submitted build. The repository intentionally does not include a generated MP4 until the submitter records the real deployed app.
 
 ## Deployment
 
 See [`DEPLOYMENT.md`](DEPLOYMENT.md).
 
-For Streamlit Community Cloud, deploy `app.py` from the repository root and use Python 3.12. The dependency file is `requirements.txt`, and `.streamlit/config.toml` is already included.
+For **Vercel**, import the GitHub repository directly. The root `Dockerfile.vercel` is auto-detected, `vercel.json` enables Fluid compute, and Streamlit binds to Vercel's dynamic `$PORT`. This uses Vercel's recent container + WebSocket support; see `DEPLOYMENT.md` for the exact steps and long-session duration caveat.
+
+For Streamlit Community Cloud, deploy `app.py` from the repository root and use Python 3.12. The dependency file is `requirements.txt`, and `.streamlit/config.toml` is included.
 
 For Docker:
 
@@ -156,9 +170,10 @@ python src/01_clean.py
 python src/02_eda.py
 python src/03_model.py
 python src/04_validate.py
+python src/05_deployment_check.py
 ```
 
-`04_validate.py` checks required files, data shape, customer-ID uniqueness, model-feature nulls, feature-schema alignment, validation-only threshold selection, serialized-model inference, predictor-row wiring, and feature-effect artifact structure.
+`04_validate.py` checks required files, data shape, customer-ID uniqueness, model-feature nulls, feature-schema alignment, validation-only threshold selection, serialized-model inference, predictor-row wiring, inference-domain metadata, and feature-effect artifact structure. `05_deployment_check.py` checks Docker/Vercel deployment assets, dynamic-port binding, Fluid compute, runtime requirements, and forbidden submission artifacts. GitHub Actions additionally runs Streamlit's `AppTest` smoke tests across all pages and the default predictor flow.
 
 ## Limitations
 

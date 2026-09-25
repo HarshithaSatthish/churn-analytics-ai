@@ -144,10 +144,10 @@ The Streamlit dashboard contains four functional pages:
 
 1. **Overview** — KPIs, churn composition, and high-churn segments.
 2. **Explore** — interactive cohort filtering, charts, and data export.
-3. **Predictor** — live churn scoring with impossible service combinations prevented, explanation bars, what-if analysis, and an illustrative ROI calculator.
+3. **Predictor** — live churn scoring with impossible service combinations prevented, explanation bars, what-if analysis, an illustrative ROI calculator, and validated batch CSV scoring with ID-safe output alignment.
 4. **Model & Report** — untouched-test metrics, threshold-selection evidence, ROC/confusion visuals, coefficient effects, methodology, and limitations.
 
-The serialized model is loaded in-process by Streamlit; there is no separate REST API to wire or deploy. Repository-relative paths are used throughout. A Dockerfile, Streamlit configuration, CI workflow, and `src/04_validate.py` are included for deployment and submission checks.
+The serialized model is loaded in-process by Streamlit; there is no separate REST API to wire or deploy. Repository-relative paths are used throughout. The repository includes Streamlit configuration, a standard Dockerfile, a Vercel-specific container definition using the platform-provided port, CI, `src/04_validate.py`, and `src/05_deployment_check.py`. A faceless ≤3-minute recording plan is included in `reports/Demo_Walkthrough_Script.md`; the real video should be recorded from the final deployed build.
 
 ## 11. Limitations
 

@@ -38,10 +38,6 @@ def service_count(values: Iterable[str]) -> int:
 
 YES_NO = frozenset({"Yes", "No"})
 YES_NO_NIS = frozenset({"Yes", "No", "No internet service"})
-
-# Training vocabulary for every categorical profile field. Unknown values must
-# fail validation instead of silently scoring as all-zero one-hots
-# (the encoder uses handle_unknown="ignore").
 ALLOWED_CATEGORIES = {
     "gender": frozenset({"Female", "Male"}),
     "partner": YES_NO,
@@ -57,14 +53,9 @@ ALLOWED_CATEGORIES = {
     "movies": YES_NO_NIS,
     "contract": frozenset({"Month-to-month", "One year", "Two year"}),
     "paperless": YES_NO,
-    "paymethod": frozenset(
-        {
-            "Electronic check",
-            "Mailed check",
-            "Bank transfer (automatic)",
-            "Credit card (automatic)",
-        }
-    ),
+    "paymethod": frozenset({
+        "Electronic check", "Mailed check", "Bank transfer (automatic)", "Credit card (automatic)"
+    }),
 }
 
 
@@ -146,7 +137,6 @@ def profile_to_model_row(profile: dict) -> pd.DataFrame:
     }
     return pd.DataFrame([row], columns=MODEL_FEATURES)
 
-
 RAW_BATCH_COLUMNS = [
     "gender", "SeniorCitizen", "Partner", "Dependents", "tenure",
     "PhoneService", "MultipleLines", "InternetService", "OnlineSecurity",
@@ -159,54 +149,30 @@ RAW_BATCH_COLUMNS = [
 def _as_bool(value) -> bool:
     """Accept 1/0, '1'/'0', or Yes/No spellings for SeniorCitizen."""
     text = str(value).strip().lower()
-    if text in {"1", "yes", "y", "true"}:
-        return True
-    if text in {"0", "no", "n", "false", ""}:
-        return False
+    if text in {"1", "yes", "y", "true"}: return True
+    if text in {"0", "no", "n", "false", ""}: return False
     raise ValueError(f"Unrecognized SeniorCitizen value: {value!r}")
 
 
 def raw_row_to_profile(row: pd.Series) -> dict:
-    """Map one raw-dataset-schema row onto the single-customer UI profile contract."""
     return {
-        "gender": str(row["gender"]).strip(),
-        "senior": _as_bool(row["SeniorCitizen"]),
-        "partner": str(row["Partner"]).strip(),
-        "dependents": str(row["Dependents"]).strip(),
-        "tenure": int(float(row["tenure"])),
-        "phone": str(row["PhoneService"]).strip(),
-        "multi": str(row["MultipleLines"]).strip(),
-        "internet": str(row["InternetService"]).strip(),
-        "onlinesec": str(row["OnlineSecurity"]).strip(),
-        "onlinebak": str(row["OnlineBackup"]).strip(),
-        "devprot": str(row["DeviceProtection"]).strip(),
-        "techsup": str(row["TechSupport"]).strip(),
-        "tv": str(row["StreamingTV"]).strip(),
-        "movies": str(row["StreamingMovies"]).strip(),
-        "contract": str(row["Contract"]).strip(),
-        "paperless": str(row["PaperlessBilling"]).strip(),
-        "paymethod": str(row["PaymentMethod"]).strip(),
-        "monthly": float(row["MonthlyCharges"]),
+        "gender": str(row["gender"]).strip(), "senior": _as_bool(row["SeniorCitizen"]),
+        "partner": str(row["Partner"]).strip(), "dependents": str(row["Dependents"]).strip(),
+        "tenure": int(float(row["tenure"])), "phone": str(row["PhoneService"]).strip(),
+        "multi": str(row["MultipleLines"]).strip(), "internet": str(row["InternetService"]).strip(),
+        "onlinesec": str(row["OnlineSecurity"]).strip(), "onlinebak": str(row["OnlineBackup"]).strip(),
+        "devprot": str(row["DeviceProtection"]).strip(), "techsup": str(row["TechSupport"]).strip(),
+        "tv": str(row["StreamingTV"]).strip(), "movies": str(row["StreamingMovies"]).strip(),
+        "contract": str(row["Contract"]).strip(), "paperless": str(row["PaperlessBilling"]).strip(),
+        "paymethod": str(row["PaymentMethod"]).strip(), "monthly": float(row["MonthlyCharges"]),
     }
 
 
 def raw_frame_to_model_rows(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str], list]:
-    """Convert raw-schema customer rows into model rows.
-
-    Returns (model_rows, errors, valid_labels). Rows that fail validation are
-    skipped and reported in errors as "row <index>: <reason>" so batch scoring
-    degrades gracefully instead of failing the whole upload. valid_labels are
-    the source index labels of the rows that converted, so outputs (scores,
-    bands, IDs) stay aligned to exactly the rows that were scored.
-    """
+    """Return model rows, row-level errors, and source index labels for valid rows."""
     missing = [c for c in RAW_BATCH_COLUMNS if c not in df.columns]
-    if missing:
-        raise ValueError(
-            "Upload is missing required columns: " + ", ".join(missing)
-        )
-    frames: list[pd.DataFrame] = []
-    labels: list = []
-    errors: list[str] = []
+    if missing: raise ValueError("Upload is missing required columns: " + ", ".join(missing))
+    frames, labels, errors = [], [], []
     for idx, row in df.iterrows():
         try:
             frames.append(profile_to_model_row(raw_row_to_profile(row)))
@@ -214,7 +180,6 @@ def raw_frame_to_model_rows(df: pd.DataFrame) -> tuple[pd.DataFrame, list[str], 
         except (ValueError, KeyError, TypeError) as exc:
             errors.append(f"row {idx}: {exc}")
     if not frames:
-        raise ValueError(
-            "No valid customer rows found. " + (" ".join(errors[:3]) if errors else "")
-        )
+        raise ValueError("No valid customer rows found. " + (" ".join(errors[:3]) if errors else ""))
     return pd.concat(frames, ignore_index=True), errors, labels
+

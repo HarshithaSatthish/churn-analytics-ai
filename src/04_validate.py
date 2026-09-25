@@ -36,6 +36,9 @@ REQUIRED_FILES = [
     ROOT / "README.md",
     ROOT / "reports" / "Final_Report.md",
     ROOT / ".streamlit" / "config.toml",
+    ROOT / "Dockerfile.vercel",
+    ROOT / "vercel.json",
+    ROOT / "requirements-runtime.txt",
 ]
 
 
@@ -59,6 +62,10 @@ def main() -> None:
     info = json.loads(FEATURE_INFO.read_text(encoding="utf-8"))
     metrics = json.loads(METRICS_JSON.read_text(encoding="utf-8"))
     check(info["model_features"] == MODEL_FEATURES, "feature_info schema drift")
+    ranges = info.get("inference_ranges", {})
+    check("MonthlyCharges" in ranges, "feature_info missing MonthlyCharges inference range")
+    check(ranges["MonthlyCharges"]["min"] <= ranges["MonthlyCharges"]["max"],
+          "Invalid MonthlyCharges inference range")
     check(metrics["threshold_selection"]["selected_on"] == "validation only",
           "Threshold must be validation-selected")
 

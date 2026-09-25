@@ -24,5 +24,7 @@ jobs:
           python src/03_model.py
       - name: Validate wiring and inference
         run: python src/04_validate.py
+      - name: Validate deployment packaging
+        run: python src/05_deployment_check.py
       - name: Run contract tests
         run: python -m unittest discover -s tests -v

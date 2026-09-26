@@ -73,6 +73,7 @@ churn-analytics-ai/
 ```
 
 ## Run locally
+Deployed link:https://churn-analytics-ai.vercel.app/
 
 ### Windows PowerShell
 
